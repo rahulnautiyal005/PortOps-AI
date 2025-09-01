@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoF Event Extractor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .floating-animation {
+      animation: floating 6s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(2deg); }
+    }
+    
+    .wave-animation {
+      animation: wave 8s ease-in-out infinite;
+    }
+    
+    @keyframes wave {
+      0%, 100% { transform: translateX(0px); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+    
+    .boat-float {
+      animation: boatFloat 12s ease-in-out infinite;
+    }
+    
+    @keyframes boatFloat {
+      0%, 100% { transform: translateY(0px) rotate(-2deg); }
+      33% { transform: translateY(-15px) rotate(1deg); }
+      66% { transform: translateY(-8px) rotate(-1deg); }
+    }
+    
+    .glow-effect {
+      box-shadow: 0 0 50px rgba(59, 130, 246, 0.3);
+    }
+    
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 20px rgba(3, 169, 244, 0.4); }
+      100% { box-shadow: 0 0 40px rgba(3, 169, 244, 0.8), 0 0 60px rgba(0, 188, 212, 0.4); }
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #0277bd 0%, #0288d1 30%, #0097a7 60%, #00695c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .ocean-gradient {
+      background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 15%, #81d4fa 30%, #4fc3f7 50%, #29b6f6 70%, #03a9f4 85%, #0288d1 100%);
+    }
+    
+    .glass-morphism {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    .file-upload-area {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .file-upload-area:hover {
+      background: linear-gradient(135deg, rgba(3, 169, 244, 0.15) 0%, rgba(0, 188, 212, 0.15) 100%);
+      transform: translateY(-2px);
+    }
+    
+    .drag-over {
+      background: linear-gradient(135deg, rgba(3, 169, 244, 0.25) 0%, rgba(0, 188, 212, 0.25) 100%);
+      border-color: #03a9f4;
+      transform: scale(1.02);
+    }
+    
+    .wave {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+      transform: translateX(-50%) translateY(-100%);
+      animation: waveMove 4s linear infinite;
+    }
+    
+    @keyframes waveMove {
+      0% { transform: translateX(-50%) translateY(-100%); }
+      100% { transform: translateX(-50%) translateY(100%); }
+    }
+    
+    .bubble {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: bubbleFloat 15s infinite linear;
+    }
+    
+    @keyframes bubbleFloat {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    
+    .floating-text {
+      animation: floatingText 8s ease-in-out infinite;
+      display: inline-block;
+    }
+    
+    @keyframes floatingText {
+      0%, 100% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+    }
+  </style>
+</head>
+<body class="ocean-gradient text-slate-800 font-sans overflow-x-hidden min-h-screen">
+
+<!-- Animated Background Bubbles -->
+<div id="bubbles-container" class="fixed inset-0 pointer-events-none z-0"></div>
+
+<!-- Navigation -->
+<nav class="relative z-10 px-6 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-12 h-12 bg-gradient-to-r from-teal-400 to-cyan-500 rounded-xl flex items-center justify-center pulse-glow">
+        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M3 13h1l5 5 5-5h6l1-4-4-4h-7l-1 2-1-2H3v8z"/>
+          <path d="M7 12l-3-3 3-3"/>
+        </svg>
+      </div>
+      <span class="text-xl font-bold gradient-text">Maritime SoF Extractor</span>
+    </div>
+    <div class="hidden md:flex space-x-6">
+      <div class="flex items-center space-x-2">
+        <svg class="w-5 h-5 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-sm text-slate-700">Smart Document Processing</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="relative z-10 px-6 py-20">
+  <div class="max-w-7xl mx-auto">
+    <!-- Decorative Boats -->
+    <div class="absolute top-10 right-10 boat-float opacity-30">
+      <svg width="80" height="60" viewBox="0 0 100 80" class="text-white">
+        <path fill="currentColor" d="M10 50 L90 50 L85 60 L15 60 Z"/>
+        <path fill="currentColor" d="M30 20 L30 50 L32 50 L32 20 Z"/>
+        <path fill="currentColor" d="M28 20 L50 25 L50 27 L28 22 Z"/>
+      </svg>
+    </div>
+    
+    <div class="absolute bottom-20 left-10 boat-float opacity-20" style="animation-delay: -6s;">
+      <svg width="60" height="45" viewBox="0 0 100 80" class="text-white">
+        <path fill="currentColor" d="M10 50 L90 50 L85 60 L15 60 Z"/>
+        <path fill="currentColor" d="M45 15 L45 50 L47 50 L47 15 Z"/>
+        <path fill="currentColor" d="M43 15 L65 20 L65 22 L43 17 Z"/>
+      </svg>
+    </div>
+
+    <div class="text-center mb-16">
+      <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+        <span class="gradient-text">Statement of Facts</span><br>
+        <span class="text-slate-800 floating-text">Maritime Event Extractor</span>
+      </h1>
+      
+      <p class="text-xl md:text-2xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
+        Navigate through your maritime documents with AI-powered precision. Extract vessel events instantly from PDFs and Word documents.
+      </p>
+      
+      <div class="flex flex-wrap justify-center gap-4 mt-8">
+        <div class="flex items-center space-x-2 glass-morphism rounded-full px-4 py-2">
+          <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+          <span class="text-sm text-slate-700">Port Certified</span>
+        </div>
+        <div class="flex items-center space-x-2 glass-morphism rounded-full px-4 py-2">
+          <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+          <span class="text-sm text-slate-700">Ocean Fast</span>
+        </div>
+        <div class="flex items-center space-x-2 glass-morphism rounded-full px-4 py-2">
+          <div class="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+          <span class="text-sm text-slate-700">Harbor Secure</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Upload Interface -->
+    <div class="max-w-4xl mx-auto">
+      <div class="glass-morphism rounded-3xl p-8 md:p-12 glow-effect relative overflow-hidden">
+        <div class="wave"></div>
+        
+        <form action="/" method="post" enctype="multipart/form-data" class="space-y-8 relative z-10">
+          
+          <!-- File Upload Area -->
+          <div class="relative">
+            <div id="file-drop-area" class="file-upload-area border-2 border-dashed border-cyan-400/50 rounded-2xl p-12 text-center cursor-pointer relative overflow-hidden">
+              <div class="space-y-4 relative z-10">
+                <div class="mx-auto w-20 h-20 bg-gradient-to-r from-cyan-400 to-teal-500 rounded-2xl flex items-center justify-center floating-animation">
+                  <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-2xl font-bold text-slate-800 mb-2">Drop your maritime document here</p>
+                  <p class="text-slate-700">or <span class="text-teal-600 hover:text-teal-700 cursor-pointer underline">browse files</span></p>
+                  <p class="text-sm text-slate-600 mt-2">Supports PDF and DOCX files up to 50MB</p>
+                </div>
+                
+                <!-- Wave decoration -->
+                <div class="absolute bottom-0 left-0 w-full h-6 opacity-20">
+                  <svg viewBox="0 0 400 40" class="w-full h-full text-cyan-400 wave-animation">
+                    <path fill="currentColor" d="M0,20 Q100,5 200,20 T400,20 V40 H0 V20 Z"/>
+                  </svg>
+                </div>
+              </div>
+              <input type="file" id="sof_document" name="sof_document" accept=".pdf,.docx" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            </div>
+            
+            <!-- File Preview -->
+            <div id="file-preview" class="hidden mt-6 p-4 glass-morphism rounded-xl border border-cyan-400/40">
+              <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p id="file-name" class="font-semibold text-slate-800"></p>
+                  <p id="file-size" class="text-sm text-slate-600"></p>
+                </div>
+                <button type="button" id="remove-file" class="text-red-400 hover:text-red-300">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PDF Type Selection -->
+          <div class="space-y-4">
+            <label class="block text-lg font-semibold text-slate-800">Document Processing Type</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="relative cursor-pointer">
+                <input type="radio" name="pdf_type" value="scanned" class="sr-only peer" checked>
+                <div class="p-6 rounded-2xl border-2 border-cyan-400/40 peer-checked:border-cyan-500 peer-checked:bg-cyan-400/15 transition-all duration-300 hover:border-cyan-400/60 glass-morphism">
+                  <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-slate-800">Scanned / Image Document</p>
+                      <p class="text-sm text-slate-600">Advanced OCR technology</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+              
+              <label class="relative cursor-pointer">
+                <input type="radio" name="pdf_type" value="text" class="sr-only peer">
+                <div class="p-6 rounded-2xl border-2 border-cyan-400/40 peer-checked:border-cyan-500 peer-checked:bg-cyan-400/15 transition-all duration-300 hover:border-cyan-400/60 glass-morphism">
+                  <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center">
+                      <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-slate-800">Digital Text Document</p>
+                      <p class="text-sm text-slate-600">Direct text extraction</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Error Display -->
+          {% if error %}
+          <div class="bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-500/30 rounded-2xl p-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <p class="text-red-200 font-medium">{{ error }}</p>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button type="submit" id="extract-btn" class="relative inline-flex items-center px-12 py-4 bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-500 rounded-2xl font-bold text-lg text-white shadow-2xl hover:shadow-cyan-500/25 transform hover:scale-105 transition-all duration-300 group">
+              <span class="mr-3 group-hover:animate-bounce">⚓</span>
+              <span id="btn-text">Set Sail & Extract</span>
+              <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-blue-500 opacity-0 group-hover:opacity-100 blur transition-opacity duration-300"></div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 max-w-6xl mx-auto">
+      <div class="glass-morphism rounded-2xl p-8 text-center hover:scale-105 transition-transform duration-300 border border-cyan-400/30">
+        <div class="w-16 h-16 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold mb-4 text-slate-800">Navigation Precision</h3>
+        <p class="text-slate-700">Chart-accurate AI algorithms ensure precise event extraction from your maritime documents.</p>
+      </div>
+      
+      <div class="glass-morphism rounded-2xl p-8 text-center hover:scale-105 transition-transform duration-300 border border-cyan-400/30">
+        <div class="w-16 h-16 bg-gradient-to-r from-orange-400 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold mb-4 text-slate-800">Tide-Fast Processing</h3>
+        <p class="text-slate-700">Process vessel logs in seconds, not hours. Swift as ocean currents with optimized workflow.</p>
+      </div>
+      
+      <div class="glass-morphism rounded-2xl p-8 text-center hover:scale-105 transition-transform duration-300 border border-cyan-400/30">
+        <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold mb-4 text-slate-800">Harbor-Grade Security</h3>
+        <p class="text-slate-700">Deep-sea encryption and secure processing keep your maritime documents safe as a harbor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Bubble animation
+  function createBubble() {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const size = Math.random() * 6 + 3;
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.left = Math.random() * 100 + '%';
+    bubble.style.animationDelay = Math.random() * 15 + 's';
+    bubble.style.animationDuration = (Math.random() * 10 + 15) + 's';
+    document.getElementById('bubbles-container').appendChild(bubble);
+    
+    setTimeout(() => {
+      bubble.remove();
+    }, 25000);
+  }
+  
+  setInterval(createBubble, 400);
+  
+  // File upload functionality
+  const fileInput = document.getElementById('sof_document');
+  const dropArea = document.getElementById('file-drop-area');
+  const filePreview = document.getElementById('file-preview');
+  const fileName = document.getElementById('file-name');
+  const fileSize = document.getElementById('file-size');
+  const removeFileBtn = document.getElementById('remove-file');
+  const extractBtn = document.getElementById('extract-btn');
+  const btnText = document.getElementById('btn-text');
+
+  // Drag and drop
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight);
+  });
+
+  function highlight() {
+    dropArea.classList.add('drag-over');
+  }
+
+  function unhighlight() {
+    dropArea.classList.remove('drag-over');
+  }
+
+  dropArea.addEventListener('drop', handleDrop);
+  dropArea.addEventListener('click', () => fileInput.click());
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      handleFileSelect({ target: { files: files } });
+    }
+  }
+
+  fileInput.addEventListener('change', handleFileSelect);
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+      fileName.textContent = file.name;
+      fileSize.textContent = formatFileSize(file.size);
+      filePreview.classList.remove('hidden');
+      dropArea.style.borderColor = '#22d3ee';
+    }
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  removeFileBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    filePreview.classList.add('hidden');
+    dropArea.style.borderColor = 'rgba(34, 211, 238, 0.5)';
+  });
+
+  // Form submission animation
+  document.querySelector('form').addEventListener('submit', (e) => {
+    extractBtn.disabled = true;
+    btnText.textContent = 'Navigating...';
+    extractBtn.classList.add('animate-pulse');
+  });
+
+  // Smooth scroll for better UX
+  document.documentElement.style.scrollBehavior = 'smooth';
+</script>
+
+</body>
+</html>

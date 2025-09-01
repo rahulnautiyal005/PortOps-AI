@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maritime Operations Analysis - {{ filename }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ocean-blue: #0077be;
+            --light-blue: #87ceeb;
+            --seafoam: #87d3d3;
+            --navy: #1e3a8a;
+            --pearl: #f8fffe;
+            --coral: #ff6b6b;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--pearl) 50%, var(--seafoam) 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .maritime-header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--ocean-blue) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0,119,190,0.3);
+        }
+
+        .ship-card {
+            background: linear-gradient(145deg, white 0%, var(--pearl) 100%);
+            border: 2px solid var(--light-blue);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,119,190,0.15);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .ship-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,119,190,0.25);
+        }
+
+        .analysis-card {
+            background: linear-gradient(145deg, var(--seafoam) 0%, white 100%);
+            border: 2px solid var(--ocean-blue);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-box {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border-left: 4px solid var(--ocean-blue);
+            transition: all 0.3s ease;
+        }
+
+        .metric-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .events-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,119,190,0.15);
+        }
+
+        .table thead th {
+            background: var(--ocean-blue);
+            color: white;
+            border: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(135, 206, 235, 0.1);
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        .event-number {
+            background: var(--ocean-blue);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .skipped-events {
+            background: linear-gradient(145deg, var(--coral) 0%, #ffb3b3 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-maritime {
+            background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--navy) 100%);
+            border: none;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-maritime:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,119,190,0.4);
+            color: white;
+        }
+
+        .success-rate {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--ocean-blue);
+        }
+
+        .icon-container {
+            background: var(--light-blue);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            font-size: 1.5rem;
+        }
+
+        .wave-divider {
+            height: 20px;
+            background: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 1200 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='%2387ceeb'/%3E%3C/svg%3E") no-repeat center;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="maritime-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-ship me-3"></i>Maritime Operations Analysis</h1>
+                    <p class="mb-0 opacity-75">Statement of Facts Processing for <strong>{{ filename }}</strong></p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/" class="btn btn-light btn-lg">
+                        <i class="fas fa-upload me-2"></i>Process Another File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if error %}
+            <div class="alert alert-danger border-0 shadow" style="border-radius: 15px;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error:</strong> {{ error }}
+            </div>
+        {% else %}
+            <!-- Ship Details Section -->
+            {% if ship_details %}
+            <div class="ship-card">
+                <div class="row">
+                    <div class="col-md-1">
+                        <div class="icon-container">
+                            <i class="fas fa-anchor"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-11">
+                        <h3 class="text-primary mb-3"><i class="fas fa-ship me-2"></i>Vessel Information</h3>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong class="text-muted">Vessel Name:</strong><br>
+                                <span class="fs-5">{{ ship_details.vessel_name or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="text-muted">Owner:</strong><br>
+                                <span class="fs-6">{{ ship_details.owner or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong class="text-muted">Captain:</strong><br>
+                                <span class="fs-6">{{ ship_details.captain or 'Not specified' }}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong class="text-muted"><i class="fas fa-sign-in-alt me-1"></i>Arrival:</strong><br>
+                                <span class="badge bg-success fs-6">{{ ship_details.arrival_time or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong class="text-muted"><i class="fas fa-sign-out-alt me-1"></i>Departure:</strong><br>
+                                <span class="badge bg-warning fs-6">{{ ship_details.departure_time or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong class="text-muted">IMO Number:</strong><br>
+                                <span class="fs-6">{{ ship_details.imo_number or 'Not specified' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong class="text-muted">Flag State:</strong><br>
+                                <span class="fs-6">{{ ship_details.flag_state or 'Not specified' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Analysis Section -->
+            {% if analysis %}
+            <div class="analysis-card">
+                <h3 class="text-primary mb-4"><i class="fas fa-chart-line me-2"></i>Parsing Analysis</h3>
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="metric-box">
+                            <div class="success-rate">{{ analysis.success_rate }}%</div>
+                            <small class="text-muted">Success Rate</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-box">
+                            <div class="success-rate text-primary">{{ analysis.total_events_found }}</div>
+                            <small class="text-muted">Total Events Found</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-box">
+                            <div class="success-rate text-success">{{ analysis.successfully_parsed }}</div>
+                            <small class="text-muted">Successfully Parsed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-box">
+                            <div class="success-rate text-warning">{{ analysis.skipped_events }}</div>
+                            <small class="text-muted">Skipped Events</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>Analysis completed on {{ analysis.parsing_timestamp }}
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Download Options -->
+            <div class="text-center mb-4">
+                <a href="/download/json" class="btn btn-maritime me-3">
+                    <i class="fas fa-download me-2"></i>Download Complete Data (JSON)
+                </a>
+                <a href="/download/csv" class="btn btn-maritime">
+                    <i class="fas fa-table me-2"></i>Download Events (CSV)
+                </a>
+            </div>
+
+            <!-- Events Table -->
+            {% if events %}
+            <div class="events-table">
+                <div class="p-3" style="background: var(--ocean-blue); color: white;">
+                    <h4 class="mb-0"><i class="fas fa-list-ol me-2"></i>Port Operations Events ({{ events|length }} events)</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th width="8%">#</th>
+                                <th width="50%">Event Description</th>
+                                <th width="21%">Start Time</th>
+                                <th width="21%">End Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>
+                                    <div class="event-number">{{ loop.index }}</div>
+                                </td>
+                                <td class="fw-bold">{{ event.event }}</td>
+                                <td>
+                                    {% if event.start_time %}
+                                        <span class="badge bg-primary">{{ event.start_time }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if event.end_time %}
+                                        <span class="badge bg-success">{{ event.end_time }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Skipped/Unresolved Events -->
+            {% if unresolved_events %}
+            <div class="skipped-events">
+                <h4 class="text-white mb-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>Skipped Events ({{ unresolved_events|length }})
+                </h4>
+                <p class="text-white mb-3">The following events could not be processed by the Gemini API:</p>
+                <div class="row">
+                    {% for event in unresolved_events %}
+                    <div class="col-md-6 mb-2">
+                        <div class="bg-white p-3 rounded">
+                            <strong>{{ loop.index }}.</strong> {{ event.event }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- No Events Found -->
+            {% if not events and not error %}
+            <div class="text-center py-5">
+                <div class="icon-container mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4 class="text-muted">No Events Found</h4>
+                <p class="text-muted">The document might not contain recognizable port operations, or the model could not identify any structured events.</p>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="wave-divider mt-5"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth scrolling and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate metric boxes
+            const metricBoxes = document.querySelectorAll('.metric-box');
+            metricBoxes.forEach((box, index) => {
+                setTimeout(() => {
+                    box.style.opacity = '0';
+                    box.style.transform = 'translateY(20px)';
+                    box.style.transition = 'all 0.5s ease';
+                    setTimeout(() => {
+                        box.style.opacity = '1';
+                        box.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 150);
+            });
+
+            // Animate table rows
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                }, index * 50);
+            });
+        });
+    </script>
+</body>
+</html>
